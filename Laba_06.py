@@ -4,6 +4,7 @@ from pygame.draw import *
 from random import randint
 
 pygame.init()
+pygame.event.set_grab(True)
 
 FPS = 10
 W = 800
