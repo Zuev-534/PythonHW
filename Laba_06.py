@@ -1,3 +1,4 @@
+import math
 import pygame
 from pygame.draw import *
 from random import randint
@@ -40,38 +41,43 @@ def moved(unt):
         unt[i] += unt[i + 2]
     return unt
 
-def score_draw(scrn, scr):
+def score_draw(scrn, scr, point = (0, 0)):
     """
     Функция, выводящая счет
     :param scrn: поверхность для вывода
     :param scr: счет пользователя
+    :param point: место отрисовки поверхности(левый верхний угол)
     :return: ---
     """
     score_font = pygame.font.SysFont("", 45)
     score_texture = score_font.render(('Счёт: ' + str(scr)), False, (120, 128, 255))
-    scrn.blit(score_texture, (0, 0))
+    scrn.blit(score_texture, point)
 
-def cong_draw(scrn):
+def cong_draw(scrn, size_of_molodec):
     """
     Функция, поздравляющая пользователя
     :param scrn: поверхность для вывода
     :return: ---
     """
-    cong_font = pygame.font.SysFont("", 100)
+    cong_font = pygame.font.SysFont("", int(100 * abs(math.sin(1.6 * size_of_molodec))))
     cong_texture = cong_font.render('YOU ARE MOLODEC!!!', False, (255, 255, 0))
-    screen.blit(cong_texture, (25, W / 2))
+    scrn.blit(cong_texture, (((1 - abs(math.sin(1.6 * size_of_molodec))) * W) / 2, W / 2))
 
-def gui(scrn, scr, num):
+def gui(scrn, scr, num, size_of_molodec = 1):
     """
     Отрисовка пользовательского интерфейса
     :param scrn: поверхность для вывода
     :param scr: счет пользователя
     :param num: количество шаров
-    :return: ---
+    :return: размерный коэффициент поздравления(1 - весь экран)
     """
-    score_draw(screen, score)
-    if score >= num_of_balls:
-        cong_draw(screen)
+    score_draw(scrn, scr)
+    if scr >= num:
+        scrn.fill((0, 0, 0))
+        score_draw(scrn, scr, (W/2-W/17, W/4))
+        cong_draw(scrn, size_of_molodec)
+        size_of_molodec = size_of_molodec + (1 / FPS)
+    return size_of_molodec
 
 def render(scrn, obj):
     """
@@ -109,6 +115,7 @@ finished = False
 
 num_of_balls = 15
 score = 0
+cong_size = 0.1
 
 
 ball = [[randint(30, 50), randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
@@ -125,7 +132,8 @@ while not finished:
             ball, score = kill(event, ball, score)
 
     ball = render(screen, ball)
-    gui(screen, score, num_of_balls)
+
+    cong_size = gui(screen, score, num_of_balls, cong_size)
 
     pygame.display.update()
     screen.fill(BLACK)
