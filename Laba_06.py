@@ -1,14 +1,16 @@
+import os
+import sys
 import math
 import pygame
 from pygame.draw import *
 from random import randint
 
-pygame.init()
-pygame.event.set_grab(True)
-
 FPS = 10
 W = 800
-screen = pygame.display.set_mode((W, W))
+
+num_of_balls = 6
+score = 0
+cong_size = 0.1
 
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -18,6 +20,10 @@ MAGENTA = (255, 0, 255)
 CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
+
+ball = [[randint(30, 50), randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
+         COLORS[randint(0, 5)]] for i in range(num_of_balls)]
+# [r, x, y, vx, vy, color]
 
 
 def ball_draw(scrn, ball):
@@ -93,7 +99,7 @@ def endgame(scrn, scr, size_of_molodec):
     :param size_of_molodec: размерный коэффициент поздравления(1 - весь экран)
     :return: размерный коэффициент поздравления(1 - весь экран)
     """
-    scrn.fill((0, 0, 0))
+    scrn.fill(BLACK)
     score_draw(scrn, scr, (W / 2 - W / 17, W / 4))
     cong_draw(scrn, size_of_molodec)
     size_of_molodec = size_of_molodec + (1 / FPS)
@@ -131,31 +137,40 @@ def kill(evnt, obj, scr):
             unit[0] = 0
     return (obj, scr)
 
+def event_processing(evnt, obj, scr):
+    """
+    Обработка поступающих событий
+    :param evnt: список событий
+    :param obj: массив объектов
+    :param scr: счёт
+    :return: кортеж (окончание игры, массив объектов, счёт)
+    """
+    for event in evnt:
+        if event.type == pygame.QUIT:
+            return True, obj, scr
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            obj, scr = kill(event, obj, scr)
+    return False, obj, scr
 
+
+
+
+
+pygame.init()
+pygame.event.set_grab(True)
+screen = pygame.display.set_mode((W, W))
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
 
-num_of_balls = 15
-score = 0
-cong_size = 0.1
-
-ball = [[randint(30, 50), randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
-         COLORS[randint(0, 5)]] for i in range(num_of_balls)]
-# [r, x, y, vx, vy, color]
-
-
 while not finished:
     clock.tick(FPS)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            finished = True
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            ball, score = kill(event, ball, score)
-    ball = render(screen, ball)
+    screen.fill(BLACK)
 
+    finished, ball, score = event_processing(pygame.event.get(), ball, score)
+
+    ball = render(screen, ball)
     cong_size = gui(screen, score, num_of_balls, cong_size)
 
     pygame.display.update()
-    screen.fill(BLACK)
 pygame.quit()
