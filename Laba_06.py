@@ -5,6 +5,7 @@ from random import randint
 
 W = 800
 FPS = 24
+num_of_balls = 6
 
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -15,6 +16,7 @@ CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
+
 
 def ball_draw(scrn, ball):
     """
@@ -101,7 +103,7 @@ def render(scrn, obj):
     """
     Функция, отрисовки и просчета координат
     :param scrn: поверхность для отрисовки
-    :param obj: объект, который нуно передвинуть и отрисовать
+    :param obj: объект, который нужно передвинуть и отрисовать
     :return: объект с измененными координатами
     """
     for unit in obj:
@@ -145,10 +147,6 @@ def event_processing(evnt, obj, scr):
     return False, obj, scr
 
 
-def load_table():
-    pass
-
-
 def gui_end(scrn, point_x, point_y):
     """
     Функция, выводящая просьбу о вводе имени
@@ -163,7 +161,6 @@ def gui_end(scrn, point_x, point_y):
     rect(scrn, GREEN, ((point_x, point_y + 30), (300, 50)), 3)
 
 
-
 def char_input(evnt, nm):
     for event in evnt:
         if event.type == pygame.QUIT:
@@ -176,6 +173,7 @@ def char_input(evnt, nm):
             nm += str(event.unicode)
     return False, nm, False
 
+
 def name_input():
     screen = pygame.display.set_mode((W, W))
     pygame.display.update()
@@ -186,7 +184,6 @@ def name_input():
     while not (finished or ended):
         clock.tick(FPS)
         screen.fill(BLACK)
-
         gui_end(screen, (W / 4), W / 3)
         finished, Name, ended = char_input(pygame.event.get(), Name)
         text_render(screen, (Name), W / 4 + 10, W / 3 + 50)
@@ -194,39 +191,51 @@ def name_input():
         pygame.display.update()
     return Name
 
+
 def text_render(scrn, nm, point_x, point_y):
     realtimeNM_font = pygame.font.SysFont("", 30)
     realtimeNM_texture = realtimeNM_font.render((nm), False, GREEN)
     scrn.blit(realtimeNM_texture, (point_x, point_y))
 
 
-def resorting_table():
-    pass
+def render_table(tab):
+    pygame.init()
+    pygame.display.set_caption('Champions')
+    screen = pygame.display.set_mode((W, W))
+    clock = pygame.time.Clock()
+    while True:
+        clock.tick(FPS)
+        screen.fill(BLACK)
+        i = 0
+        text_render(screen, "ТАБЛИЦА ЛИДЕРОВ", W/3, 20)
+        for line in tab:
+            i = i + 1
+            stroka = line[0][0:8] + " " + line[1][0:8]
+            text_render(screen, stroka, 30, 20 + i * 40)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.display.update()
+                pygame.quit()
+        pygame.display.update()
 
 
-def render_table():
-    pass
+def Champ_table(tab, line):
+    temp = [[], []]
+    for player in tab:
+        if player[1] == line[1]:
+            player[0] = line[0] + "and other"
+        if float(player[1]) > float(line[1]):
+            temp = player
+            player = line
+            line = temp
+    render_table(tab)
+    print(tab)
+    return tab
 
 
-def table_file_out():
-    pass
-
-
-def input_result():
-    pass
-
-
-def Champ_table():
-    screen.fill(BLACK)
-    input_result()
-    # Are you worthy to be one of the best?
-    # delete last player (of add 'and other')
-    resorting_table()
-    render_table()
-    table_file_out()
-
-def igra(finished = False, player_won = False, player_won_count = 0, timer = 2,
-        num_of_balls = 6, score = 0, cong_size = 0.1):
+def igra(finished=False, player_won=False, player_won_count=0, timer=2,
+         score=0, cong_size=0.1):
+    F_number = 0
     ball = [[randint(30, 50), randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
              COLORS[randint(0, 5)]] for i in range(num_of_balls)]
     pygame.display.set_caption('KILL THEM ALL')
@@ -246,16 +255,30 @@ def igra(finished = False, player_won = False, player_won_count = 0, timer = 2,
         if player_won_count >= timer:
             player_won = True
         pygame.display.update()
+        F_number += 1
+    return F_number
 
 
 pygame.init()
 
-igra()
+F = igra()
 
-name_input()
+# Без проверки на дурака
+Nickname = name_input()
+table = []
+with open('Top10.txt', 'r') as T:
+    for line in T:
+        table.append(line.split())
 
+table = Champ_table(table, [Nickname[0:8], str(F / num_of_balls)[0:8]])
+print(table)
+print(str(F / num_of_balls)[0:8])
 
+with open('Top10.txt', 'w') as T:
+    for line in table:
+        T.write(line[0] + " " + line[1] + "\n")
 
+print(table)
 
 pygame.display.update()
 pygame.quit()
