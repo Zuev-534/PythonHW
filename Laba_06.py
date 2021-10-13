@@ -3,12 +3,8 @@ import pygame
 from pygame.draw import *
 from random import randint
 
-FPS = 24
 W = 800
-
-num_of_balls = 6
-score = 0
-cong_size = 0.1
+FPS = 24
 
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -19,13 +15,6 @@ CYAN = (0, 255, 255)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
-
-ball = [[randint(30, 50), randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
-         COLORS[randint(0, 5)]] for i in range(num_of_balls)]
-
-
-# [r, x, y, vx, vy, color]
-
 
 def ball_draw(scrn, ball):
     """
@@ -150,7 +139,7 @@ def event_processing(evnt, obj, scr):
     """
     for event in evnt:
         if event.type == pygame.QUIT:
-            return True, obj, scr
+            pygame.quit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             obj, scr = kill(event, obj, scr)
     return False, obj, scr
@@ -167,16 +156,18 @@ def gui_end(scrn, point_x, point_y):
     :param point: место отрисовки поверхности(левый верхний угол)
     :return: ---
     """
+    pygame.display.set_caption('Congratulations!!')
     Endtext_font = pygame.font.SysFont("", 45)
     Endtext_texture = Endtext_font.render(('Введите своё имя и нажмите SPACE:'), False, GREEN)
     scrn.blit(Endtext_texture, (point_x, point_y))
     rect(scrn, GREEN, ((point_x, point_y + 30), (300, 50)), 3)
 
 
-def name_input(evnt, nm):
+
+def char_input(evnt, nm):
     for event in evnt:
         if event.type == pygame.QUIT:
-            return True, nm, False
+            pygame.quit()
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_BACKSPACE:
             nm = ((nm[::-1])[1:])[::-1]
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
@@ -185,6 +176,23 @@ def name_input(evnt, nm):
             nm += str(event.unicode)
     return False, nm, False
 
+def name_input():
+    screen = pygame.display.set_mode((W, W))
+    pygame.display.update()
+    clock = pygame.time.Clock()
+    Name = ''
+    finished = False
+    ended = False
+    while not (finished or ended):
+        clock.tick(FPS)
+        screen.fill(BLACK)
+
+        gui_end(screen, (W / 4), W / 3)
+        finished, Name, ended = char_input(pygame.event.get(), Name)
+        text_render(screen, (Name), W / 4 + 10, W / 3 + 50)
+
+        pygame.display.update()
+    return Name
 
 def text_render(scrn, nm, point_x, point_y):
     realtimeNM_font = pygame.font.SysFont("", 30)
@@ -217,42 +225,37 @@ def Champ_table():
     render_table()
     table_file_out()
 
+def igra(finished = False, player_won = False, player_won_count = 0, timer = 2,
+        num_of_balls = 6, score = 0, cong_size = 0.1):
+    ball = [[randint(30, 50), randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
+             COLORS[randint(0, 5)]] for i in range(num_of_balls)]
+    pygame.display.set_caption('KILL THEM ALL')
+    pygame.event.set_grab(True)
+    screen = pygame.display.set_mode((W, W))
+    pygame.display.update()
+    clock = pygame.time.Clock()
+    while not (finished or player_won):
+        clock.tick(FPS)
+        screen.fill(BLACK)
+
+        finished, ball, score = event_processing(pygame.event.get(), ball, score)
+        ball = render(screen, ball)
+
+        cong_size, player_won_count = gui(screen, score, num_of_balls, player_won_count, cong_size)
+
+        if player_won_count >= timer:
+            player_won = True
+        pygame.display.update()
+
 
 pygame.init()
-pygame.display.set_caption('KILL THEM ALL')
-pygame.event.set_grab(True)
-screen = pygame.display.set_mode((W, W))
-pygame.display.update()
-clock = pygame.time.Clock()
-finished = False
-ended = False
-player_won = False
-player_won_count = 0
-timer = 2
 
-while not (finished or player_won):
-    clock.tick(FPS)
-    screen.fill(BLACK)
+igra()
 
-    finished, ball, score = event_processing(pygame.event.get(), ball, score)
-    ball = render(screen, ball)
+name_input()
 
-    cong_size, player_won_count = gui(screen, score, num_of_balls, player_won_count, cong_size)
 
-    if player_won_count >= timer:
-        player_won = True
-    pygame.display.update()
 
-Name = ''
-Name_ended = False
-# Ввод имени
-while not (finished or ended):
-    clock.tick(FPS)
-    screen.fill(BLACK)
 
-    gui_end(screen, (W / 4), W / 3)
-    finished, Name, ended = name_input(pygame.event.get(), Name)
-    text_render(screen, (Name), W / 4 + 10, W / 3 + 50)
-    pygame.display.update()
 pygame.display.update()
 pygame.quit()
