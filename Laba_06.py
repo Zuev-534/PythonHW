@@ -28,20 +28,22 @@ def ball_draw(scrn, ball):
     """
     circle(scrn, ball[5], (ball[1], ball[2]), ball[0])
 
+
 def moved(unt):
     """
     Функция, изменяющая координаты
     :param unt: объект, который мы двигаем
     :return: объект после передвижения
     """
-    for i in (1,2):
+    for i in (1, 2):
         if ((unt[i] >= W - unt[0]) or (unt[i] <= unt[0])):
             unt[i + 2] = unt[i + 2] * (-1)
             unt[i] = unt[i] + unt[i + 2]
         unt[i] += unt[i + 2]
     return unt
 
-def score_draw(scrn, scr, point = (0, 0)):
+
+def score_draw(scrn, scr, point=(0, 0)):
     """
     Функция, выводящая счет
     :param scrn: поверхность для вывода
@@ -53,31 +55,49 @@ def score_draw(scrn, scr, point = (0, 0)):
     score_texture = score_font.render(('Счёт: ' + str(scr)), False, (120, 128, 255))
     scrn.blit(score_texture, point)
 
+
 def cong_draw(scrn, size_of_molodec):
     """
     Функция, поздравляющая пользователя
     :param scrn: поверхность для вывода
+    :param size_of_molodec: размерный коэффициент поздравления(1 - весь экран)
     :return: ---
     """
     cong_font = pygame.font.SysFont("", int(100 * abs(math.sin(1.6 * size_of_molodec))))
     cong_texture = cong_font.render('YOU ARE MOLODEC!!!', False, (255, 255, 0))
     scrn.blit(cong_texture, (((1 - abs(math.sin(1.6 * size_of_molodec))) * W) / 2, W / 2))
 
-def gui(scrn, scr, num, size_of_molodec = 1):
+
+def gui(scrn, scr, num, size_of_molodec=1):
     """
     Отрисовка пользовательского интерфейса
     :param scrn: поверхность для вывода
     :param scr: счет пользователя
     :param num: количество шаров
+    :param size_of_molodec: размерный коэффициент поздравления(1 - весь экран)
     :return: размерный коэффициент поздравления(1 - весь экран)
     """
     score_draw(scrn, scr)
     if scr >= num:
-        scrn.fill((0, 0, 0))
-        score_draw(scrn, scr, (W/2-W/17, W/4))
-        cong_draw(scrn, size_of_molodec)
-        size_of_molodec = size_of_molodec + (1 / FPS)
+        return endgame(scrn, scr, size_of_molodec)
+    else:
+        return 0
+
+
+def endgame(scrn, scr, size_of_molodec):
+    """
+    Функция отрисовывает поздравления и список лидеров(второе только планируется)
+    :param scrn: поверхность для вывода
+    :param scr: счет пользователя
+    :param size_of_molodec: размерный коэффициент поздравления(1 - весь экран)
+    :return: размерный коэффициент поздравления(1 - весь экран)
+    """
+    scrn.fill((0, 0, 0))
+    score_draw(scrn, scr, (W / 2 - W / 17, W / 4))
+    cong_draw(scrn, size_of_molodec)
+    size_of_molodec = size_of_molodec + (1 / FPS)
     return size_of_molodec
+
 
 def render(scrn, obj):
     """
@@ -92,6 +112,7 @@ def render(scrn, obj):
         if unit[0] > 0:
             ball_draw(scrn, unit)
     return obj
+
 
 def kill(evnt, obj, scr):
     """
@@ -109,6 +130,7 @@ def kill(evnt, obj, scr):
             unit[0] = 0
     return (obj, scr)
 
+
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
@@ -116,7 +138,6 @@ finished = False
 num_of_balls = 15
 score = 0
 cong_size = 0.1
-
 
 ball = [[randint(30, 50), randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
          COLORS[randint(0, 5)]] for i in range(num_of_balls)]
@@ -130,7 +151,6 @@ while not finished:
             finished = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             ball, score = kill(event, ball, score)
-
     ball = render(screen, ball)
 
     cong_size = gui(screen, score, num_of_balls, cong_size)
