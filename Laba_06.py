@@ -4,8 +4,8 @@ from pygame.draw import *
 from random import randint
 
 W = 800
-FPS = 24
-num_of_balls = 6
+FPS = 60
+num_of_balls = 25
 
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -175,6 +175,10 @@ def char_input(evnt, nm):
 
 
 def name_input():
+    """
+    Функция, считывающая нажатые клавиши(и некоторые сочеттания). Работает до встречи с пробелом
+    :return: сторку, с нажатыми клавишами(и некоторые сочеттания) как символами юникода
+    """
     screen = pygame.display.set_mode((W, W))
     pygame.display.update()
     clock = pygame.time.Clock()
@@ -187,18 +191,30 @@ def name_input():
         gui_end(screen, (W / 4), W / 3)
         finished, Name, ended = char_input(pygame.event.get(), Name)
         text_render(screen, (Name), W / 4 + 10, W / 3 + 50)
-
         pygame.display.update()
     return Name
 
 
 def text_render(scrn, nm, point_x, point_y):
+    """
+    Функция, отрисовывающая текст
+    :param scrn: поверхность для вывода
+    :param nm: текст для вывода
+    :param point_x: абсцисса левой верхней точки поверхности
+    :param point_y: ордината левой верхней точки поверхности
+    :return: ---
+    """
     realtimeNM_font = pygame.font.SysFont("", 30)
     realtimeNM_texture = realtimeNM_font.render((nm), False, GREEN)
     scrn.blit(realtimeNM_texture, (point_x, point_y))
 
 
 def render_table(tab):
+    """
+    Функция, рисующая таблицу после записи в файл
+    :param tab: итоговая таблица
+    :return: "Правда". Просто для обрыва цикла и корректного завершения программы
+    """
     pygame.init()
     pygame.display.set_caption('Champions')
     screen = pygame.display.set_mode((W, W))
@@ -207,7 +223,7 @@ def render_table(tab):
         clock.tick(FPS)
         screen.fill(BLACK)
         i = 0
-        text_render(screen, "ТАБЛИЦА ЛИДЕРОВ", W/3, 20)
+        text_render(screen, "ТАБЛИЦА ЛИДЕРОВ", W / 3, 20)
         for line in tab:
             i = i + 1
             stroka = line[0][0:8] + " " + line[1][0:8]
@@ -215,26 +231,39 @@ def render_table(tab):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.display.update()
-                pygame.quit()
+                return True
         pygame.display.update()
 
 
 def Champ_table(tab, line):
-    temp = [[], []]
-    for player in tab:
-        if player[1] == line[1]:
-            player[0] = line[0] + "and other"
-        if float(player[1]) > float(line[1]):
-            temp = player
-            player = line
+    """
+    Функция, вносящая новый рекорд при его появлении
+    :param tab: таблица чемпионов (массив пар "имя" и "счет")
+    :param line: новый результат (пара "имя" и "счёт")
+    :return: измененная таблица
+    """
+    for i in range(len(tab)):
+        if tab[i][1] == line[1]:
+            tab[i][0] = line[0]
+        if float(tab[i][1]) > float(line[1]):
+            temp = tab[i]
+            tab[i] = line
             line = temp
-    render_table(tab)
-    print(tab)
     return tab
 
 
 def igra(finished=False, player_won=False, player_won_count=0, timer=2,
          score=0, cong_size=0.1):
+    """
+    Функция, запускающая экран с игрой на время
+    :param finished: условие завершения
+    :param player_won: условие завершения
+    :param player_won_count: счетчик кадров после победы
+    :param timer: время задержки на поздравлении после победы(секунды)
+    :param score: счет игрока
+    :param cong_size: размер текста-поздравления
+    :return: количество кадров, затраченных на "уничтожение" шариков
+    """
     F_number = 0
     ball = [[randint(30, 50), randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
              COLORS[randint(0, 5)]] for i in range(num_of_balls)]
@@ -258,27 +287,33 @@ def igra(finished=False, player_won=False, player_won_count=0, timer=2,
         F_number += 1
     return F_number
 
-
+# Начало игры
 pygame.init()
 
 F = igra()
+# Конец игры
 
+# Ввод имени
 # Без проверки на дурака
 Nickname = name_input()
+
+# Считывание таблицы
 table = []
 with open('Top10.txt', 'r') as T:
     for line in T:
         table.append(line.split())
 
-table = Champ_table(table, [Nickname[0:8], str(F / num_of_balls)[0:8]])
-print(table)
-print(str(F / num_of_balls)[0:8])
+# Изменение таблицы лидеров
+table = Champ_table(table, [Nickname[0:8], str(int(F / num_of_balls))[0:8]])
 
+# Запись актуальной таблицы лидеров
 with open('Top10.txt', 'w') as T:
     for line in table:
         T.write(line[0] + " " + line[1] + "\n")
 
-print(table)
+# Отрисовка таблицы лидеров
+render_table(table)
+
 
 pygame.display.update()
 pygame.quit()
