@@ -5,7 +5,7 @@ from random import randint
 
 W = 800
 FPS = 60
-num_of_balls = 25
+num_of_balls = 4
 num_of_squares = 3
 site_of_square = 50
 
@@ -39,7 +39,7 @@ def square_draw(scrn, squar):
     :param scrn: поверхность для отрисовки
     :return: ---
     """
-    rect(scrn, squar[5], ((squar[1] - int(squar[0] / 2), squar[2] + int(squar[0] / 2)), (squar[0], squar[0])))
+    rect(scrn, squar[5], ((squar[1] - int(squar[0] / 2), squar[2] - int(squar[0] / 2)), (squar[0], squar[0])))
 
 
 def moved(unt):
@@ -251,7 +251,6 @@ def render_table(tab):
     :param tab: итоговая таблица
     :return: "Правда". Просто для обрыва цикла и корректного завершения программы
     """
-    pygame.init()
     pygame.display.set_caption('Champions')
     screen = pygame.display.set_mode((W, W))
     clock = pygame.time.Clock()
@@ -305,6 +304,7 @@ def igra(finished=False, player_won=False, player_won_count=0, timer=2,
              COLORS[randint(0, 5)]] for _ in range(num_of_balls)]
     square = [[site_of_square, randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
                COLORS[randint(0, 5)]] for _ in range(num_of_squares)]
+
     pygame.display.set_caption('KILL THEM ALL')
     pygame.event.set_grab(True)
     screen = pygame.display.set_mode((W, W))
