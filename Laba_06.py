@@ -6,6 +6,8 @@ from random import randint
 W = 800
 FPS = 60
 num_of_balls = 25
+num_of_squares = 3
+site_of_square = 50
 
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -18,15 +20,26 @@ WHITE = (255, 255, 255)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 
-def ball_draw(scrn, ball):
+def ball_draw(scrn, bll):
     """
     Функция отрисовки нашего объекта
-    :param ball: принимает значение массива с данными в порядке (радиус, абсцисса, ордината,
-     абсц_скорость, орд_скорость цвет)
+    :param ball: принимает значение массива с данными в порядке (радиус, абсцисса центра, ордината центра,
+     абсц_скорость, орд_скорость, цвет)
     :param scrn: поверхность для отрисовки
     :return: ---
     """
-    circle(scrn, ball[5], (ball[1], ball[2]), ball[0])
+    circle(scrn, bll[5], (bll[1], bll[2]), bll[0])
+
+
+def square_draw(scrn, squar):
+    """
+    Функция отрисовки специального объекта
+    :param squar: принимает значение массива с данными в порядке (сторона, абсцисса центра, ордината центра,
+     абсц_скорость, орд_скорость, цвет)
+    :param scrn: поверхность для отрисовки
+    :return: ---
+    """
+    rect(scrn, squar[5], ((squar[1] - int(squar[0] / 2), squar[2] + int(squar[0] / 2)), (squar[0], squar[0])))
 
 
 def moved(unt):
@@ -68,18 +81,19 @@ def cong_draw(scrn, size_of_molodec):
     scrn.blit(cong_texture, (((1 - abs(math.sin(1.6 * size_of_molodec))) * W) / 2, W / 2))
 
 
-def gui(scrn, scr, num, countdown, size_of_molodec):
+def gui(scrn, scr, num, spc_num, countdown, size_of_molodec):
     """
     Отрисовка пользовательского интерфейса
     :param scrn: поверхность для вывода
     :param scr: счет пользователя
     :param num: количество шаров
+    :param spc_num: количество спецобъектов
     :param countdown: количество секунд после победы
     :param size_of_molodec: размерный коэффициент поздравления(1 - весь экран)
     :return: размерный коэффициент поздравления(1 - весь экран)
     """
     score_draw(scrn, scr)
-    if scr >= num:
+    if scr >= num + spc_num*10:
         return endgame(scrn, scr, size_of_molodec), (countdown + 1 / FPS)
     else:
         return 0, 0
@@ -100,7 +114,7 @@ def endgame(scrn, scr, size_of_molodec):
     return size_of_molodec
 
 
-def render(scrn, obj):
+def render_ball(scrn, obj):
     """
     Функция, отрисовки и просчета координат
     :param scrn: поверхность для отрисовки
@@ -114,11 +128,26 @@ def render(scrn, obj):
     return obj
 
 
-def kill(evnt, obj, scr):
+def render_square(scrn, squar):
+    """
+    Функция, отрисовки и просчета координат
+    :param scrn: поверхность для отрисовки
+    :param squar: специальный объект, который нужно передвинуть и отрисовать
+    :return: объект с измененными координатами
+    """
+    for unit in squar:
+        unit = moved(unit)
+        if unit[0] > 0:
+            square_draw(scrn, unit)
+    return squar
+
+
+def kill(evnt, obj, squar, scr):
     """
     Функция "убийства" шариков
     :param evnt: событие
     :param obj: массив объектов
+    :param squar: массив специальных объектов
     :param scr: счёт
     :return: кортеж (массив, счёт)
     """
@@ -128,14 +157,20 @@ def kill(evnt, obj, scr):
             if unit[0] > 0:
                 scr += 1
             unit[0] = 0
-    return obj, scr
+    for unit in squar:
+        if (abs(unit[1] - xb) <= unit[0] / 2) and (abs(unit[2] - yb) <= unit[0] / 2):
+            if unit[0] > 0:
+                scr += 10
+            unit[0] = 0
+    return obj, squar, scr
 
 
-def event_processing(evnt, obj, scr):
+def event_processing(evnt, obj, squar, scr):
     """
     Обработка поступающих событий
     :param evnt: список событий
     :param obj: массив объектов
+    :param squar: массив специальных объектов
     :param scr: счёт
     :return: кортеж (окончание игры, массив объектов, счёт)
     """
@@ -143,8 +178,8 @@ def event_processing(evnt, obj, scr):
         if event.type == pygame.QUIT:
             pygame.quit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            obj, scr = kill(event, obj, scr)
-    return False, obj, scr
+            obj, squar, scr = kill(event, obj, squar, scr)
+    return False, obj, squar, scr
 
 
 def gui_end(scrn, point_x, point_y):
@@ -268,6 +303,8 @@ def igra(finished=False, player_won=False, player_won_count=0, timer=2,
     f_number = 0
     ball = [[randint(30, 50), randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
              COLORS[randint(0, 5)]] for _ in range(num_of_balls)]
+    square = [[site_of_square, randint(100, W - 100), randint(100, W - 100), randint(-7, 7), randint(-7, 7),
+               COLORS[randint(0, 5)]] for _ in range(num_of_squares)]
     pygame.display.set_caption('KILL THEM ALL')
     pygame.event.set_grab(True)
     screen = pygame.display.set_mode((W, W))
@@ -277,10 +314,11 @@ def igra(finished=False, player_won=False, player_won_count=0, timer=2,
         clock.tick(FPS)
         screen.fill(BLACK)
 
-        finished, ball, score = event_processing(pygame.event.get(), ball, score)
-        ball = render(screen, ball)
+        finished, ball, square, score = event_processing(pygame.event.get(), ball, square, score)
+        ball = render_ball(screen, ball)
+        square = render_square(screen, square)
 
-        cong_size, player_won_count = gui(screen, score, num_of_balls, player_won_count, cong_size)
+        cong_size, player_won_count = gui(screen, score, num_of_balls, num_of_squares, player_won_count, cong_size)
 
         if player_won_count >= timer:
             player_won = True
@@ -315,7 +353,6 @@ with open('Top10.txt', 'w') as T:
 
 # Отрисовка таблицы лидеров
 render_table(table)
-
 
 pygame.display.update()
 pygame.quit()
