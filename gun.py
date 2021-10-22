@@ -3,7 +3,6 @@ from random import choice
 import random
 import pygame
 
-
 FPS = 30
 
 RED = 0xFF0000
@@ -49,7 +48,7 @@ class Ball:
         )
 
     def hit_test(self, obj):
-        if (self.x - obj.x)**2 + (self.y - obj.y)**2 <= (obj.r + self.r)**2:
+        if (self.x - obj.x) ** 2 + (self.y - obj.y) ** 2 <= (obj.r + self.r) ** 2:
             return True
         else:
             return False
@@ -72,7 +71,7 @@ class Gun:
         bullet += 1
         new_ball = Ball(self.screen)
         new_ball.r += 5
-        self.an = math.atan2((event.pos[1]-new_ball.y), (event.pos[0]-new_ball.x))
+        self.an = math.atan2((event.pos[1] - new_ball.y), (event.pos[0] - new_ball.x))
         new_ball.vx = self.f2_power * math.cos(self.an)
         new_ball.vy = - self.f2_power * math.sin(self.an)
         balls.append(new_ball)
@@ -81,16 +80,23 @@ class Gun:
 
     def targeting(self, event):
         if event:
-            self.an = math.atan((event.pos[1]-450) / (event.pos[0]-20))
+            self.an = math.atan((event.pos[1] - 450) / (event.pos[0] - 20))
         if self.f2_on:
             self.color = RED
         else:
             self.color = GREY
 
     def draw(self):
-        pygame.draw.line(self.screen, self.color, (20, 450),
-        (20 + self.f2_power * math.cos(self.an), 450 + self.f2_power * math.sin(self.an)), 20)
-
+        pygame.draw.line(
+            self.screen,
+            self.color,
+            (20, 450),
+            (
+                20 + self.f2_power * math.cos(self.an),
+                450 + self.f2_power * math.sin(self.an)
+            ),
+            20
+        )
 
     def power_up(self):
         if self.f2_on:
@@ -106,7 +112,6 @@ class Target:
         self.points = 0
         self.live = 1
         self.new_target()
-
 
     def new_target(self):
         """ Инициализация новой цели. """
@@ -126,15 +131,16 @@ class Target:
 
     def draw(self):
         self.x += self.vx
-        self.vx += 0.1*self.ax
+        self.vx += 0.1 * self.ax
         self.y -= self.vy
-        self.vy += 0.1*self.ay
-        if (self.x < self.r ) or (self.x > WIDTH - self.r):
+        self.vy += 0.1 * self.ay
+        if (self.x < self.r) or (self.x > WIDTH - self.r):
             self.vx *= -1
         if (self.y < self.r) or (self.y > HEIGHT - self.r):
             self.vy *= -1
 
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.r)
+
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
