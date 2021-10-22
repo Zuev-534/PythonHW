@@ -139,6 +139,10 @@ class Target:
         self.x = random.randrange(600, 780)
         self.y = random.randrange(300, 550)
         self.r = random.randrange(2, 50)
+        self.vx = random.randrange(0, 10)
+        self.vy = random.randrange(0, 10)
+        self.ax = random.randrange(0, 1)
+        self.ay = random.randrange(0, 1)
         self.color = RED
 
     def hit(self, points=1):
@@ -146,6 +150,15 @@ class Target:
         self.points += points
 
     def draw(self):
+        self.x += self.vx
+        self.vx += 0.1*self.ax
+        self.y -= self.vy
+        self.vy += 0.1*self.ay
+        if (self.x < self.r ) or (self.x > WIDTH - self.r):
+            self.vx *= -1
+        if (self.y < self.r) or (self.y > HEIGHT - self.r):
+            self.vy *= -1
+
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.r)
 
 
