@@ -21,8 +21,8 @@ HEIGHT = 600
 
 
 class Ball:
-    def __init__(self, screen: pygame.Surface, x=40, y=450):
-        self.screen = screen
+    def __init__(self, screen1: pygame.Surface, x=40, y=450):
+        self.screen = screen1
         self.x = x
         self.y = y
         self.r = 10
@@ -55,8 +55,8 @@ class Ball:
 
 
 class Gun:
-    def __init__(self, screen):
-        self.screen = screen
+    def __init__(self, screen1):
+        self.screen = screen1
         self.f2_power = 10
         self.f2_on = 0
         self.an = 1
@@ -66,21 +66,21 @@ class Gun:
     def fire2_start(self):
         self.f2_on = 1
 
-    def fire2_end(self, event):
+    def fire2_end(self, event1):
         global balls, bullet
         bullet += 1
         new_ball = Ball(self.screen)
         new_ball.r += 5
-        self.an = math.atan2((event.pos[1] - new_ball.y), (event.pos[0] - new_ball.x))
+        self.an = math.atan2((event1.pos[1] - new_ball.y), (event1.pos[0] - new_ball.x))
         new_ball.vx = self.f2_power * math.cos(self.an)
         new_ball.vy = - self.f2_power * math.sin(self.an)
         balls.append(new_ball)
         self.f2_on = 0
         self.f2_power = 10
 
-    def targeting(self, event):
-        if event:
-            self.an = math.atan((event.pos[1] - 450) / (event.pos[0] - 20))
+    def targeting(self, event1):
+        if event1:
+            self.an = math.atan((event1.pos[1] - 450) / (event1.pos[0] - 20))
         if self.f2_on:
             self.color = RED
         else:
@@ -111,6 +111,14 @@ class Target:
     def __init__(self):
         self.points = 0
         self.live = 1
+        self.x = random.randrange(600, 780)
+        self.y = random.randrange(300, 550)
+        self.r = random.randrange(2, 50)
+        self.vx = random.randrange(0, 10)
+        self.vy = random.randrange(0, 10)
+        self.ax = random.randrange(0, 1)
+        self.ay = random.randrange(0, 1)
+        self.color = RED
         self.new_target()
 
     def new_target(self):
